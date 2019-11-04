@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>ARI Calculator</title>
+    
+    <!-- Materialize -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <style type="text/css">
+      #input_url {
+        width:100%;
+      }
+      body {
+        background-color:lemonchiffon;
+      }
+      main {
+        max-width:1000px;
+        min-height:100vh;
+        margin:0 auto;
+        background-color:white;
+        padding:20px;
+      }
+      form {
+        display:flex;
+        flex-direction:row;
+        justify-content:space-between;
+        align-items:center;
+      }
+      form .input-field {
+        flex-grow:1;
+      }
+      form .btn {
+        margin-left:10px;
+      }
+      
+      #overlay {
+        position:fixed;
+        background-color: rgba(255,255,255,0.8);
+        width:100%;
+        height:100%;
+        z-index:10;
+        text-align:center;
+      }
+      #overlay > div {
+        margin-top:40px;
+        width:100px;
+        height:100px;
+      }
+      
+      h1 {
+        font-size:40px;
+        margin:0;
+      }
+      
+      .alert {
+        width:100%;
+        background-color:#F8D7DA;
+        color: #721C24;
+        padding:20px;
+        margin:20px 0;
+        font-size:20px;
+      }
+      
+    </style>
+  </head>
+  <body>
+    <div id="overlay" style="display:none">
+      {% comment %}<img src="{% static 'ariapp/loading_icon.gif' %}"/>{% endcomment %}
+      <div class="preloader-wrapper big active">
+        <div class="spinner-layer spinner-blue-only">
+          <div class="circle-clipper left">
+            <div class="circle"></div>
+          </div><div class="gap-patch">
+            <div class="circle"></div>
+          </div><div class="circle-clipper right">
+            <div class="circle"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <main>
+      <h1>ARI Calculator</h1>
+      {% if status == 1 %}
+      <div class="alert">That book is already in our database</div>
+      {% elif status == 2 %}
+      <div class="alert">An error occurred :(</div>
+      {% endif %}
+      <form action="{% url 'ariapp:calculate_ari' %}" method="post">
+        {% csrf_token %}
+        
+        <div class="input-field inline">
+          <input type="text" name="url" id="input_url"/>
+          <label for="input_url">Url</label>
+        </div>
+        <button id="bt_submit_url" class="btn blue">submit</button>
+        <a href="https://www.gutenberg.org/" class="btn blue" target="_blank">Find a Book <i class="material-icons right">open_in_new</i></a>
+        
+        
+      </form>
+      <table>
+        <tr>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Url</th>
+          <th>Characters</th>
+          <th>Words</th>
+          <th>Sentences</th>
+          <th>ARI</th>
+          <th>Age Range</th>
+          <th>Grade Level</th>
+          <th></th>
+        </tr>
+        {% for book in book_aris %}
+        <tr>
+          <td title="{{book.title}}">{{book.title|truncatechars:20}}</td>
+          <td>{{book.author}}</td>
+          <td><a href="{{book.url}}" target="_blank"><i class="material-icons">link</i></a></td>
+          <td>{{book.n_characters}}</td>
+          <td>{{book.n_words}}</td>
+          <td>{{book.n_sentences}}</td>
+          <td>{{book.ari}}</td>
+          <td>{{book.age_range}}</td>
+          <td>{{book.grade_level}}</td>
+          <td><a class="btn-floating blue" href="{% url 'ariapp:delete_book' book.id %}"><i class="material-icons">close</i></a></td>
+        </tr>
+        {% endfor %}
+      </table>
+      
+    </main>
+    <script type="text/javascript">
+      let bt_submit_url = document.querySelector('#bt_submit_url')
+      let overlay = document.querySelector('#overlay')
+      let input_url = document.querySelector('#input_url')
+      bt_submit_url.addEventListener('click', function(event) {
+        let url = input_url.value
+        if (url != '' && url.indexOf('gutenberg.org') != -1) {
+          overlay.style.display = ''
+        } else {
+          event.preventDefault()
+          alert('BAD URL')
+        }
+      })
+    </script>
+  </body>
+</html>
